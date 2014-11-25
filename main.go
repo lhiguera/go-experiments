@@ -45,7 +45,7 @@ func (r *router) Delete(path string, handler http.Handler) {
 }
 
 type appError struct {
-	error   error
+	err     error
 	code    int
 	message string
 }
@@ -54,8 +54,8 @@ type appHandler func(http.ResponseWriter, *http.Request) *appError
 
 func (fn appHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err := fn(w, r); err != nil {
-		if err.error != nil {
-			log.Println(err.error)
+		if err.err != nil {
+			log.Println(err.err)
 		}
 		http.Error(w, err.message, err.code)
 	}
@@ -70,7 +70,7 @@ func serveHello(w http.ResponseWriter, r *http.Request) *appError {
 	params, ok := context.Get(r, "params").(httprouter.Params)
 	if !ok {
 		return &appError{
-			error:   errParamsTypeAssertion,
+			err:     errParamsTypeAssertion,
 			code:    http.StatusInternalServerError,
 			message: http.StatusText(http.StatusInternalServerError),
 		}
@@ -78,7 +78,7 @@ func serveHello(w http.ResponseWriter, r *http.Request) *appError {
 	name := params.ByName("name")
 	if name == "" {
 		return &appError{
-			error:   errEmptyParameter,
+			err:     errEmptyParameter,
 			code:    http.StatusBadRequest,
 			message: http.StatusText(http.StatusBadRequest),
 		}
@@ -86,7 +86,7 @@ func serveHello(w http.ResponseWriter, r *http.Request) *appError {
 	_, err := w.Write([]byte("Hello " + name + "\n"))
 	if err != nil {
 		return &appError{
-			error:   err,
+			err:     err,
 			code:    http.StatusInternalServerError,
 			message: http.StatusText(http.StatusInternalServerError),
 		}
