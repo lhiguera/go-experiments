@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -50,14 +51,19 @@ type appError struct {
 	message string
 }
 
+func (err *appError) Error() string {
+	return fmt.Sprintf("HTTP %d: %s", err.code, err.message)
+}
+
 type appHandler func(http.ResponseWriter, *http.Request) *appError
 
 func (fn appHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if err := fn(w, r); err != nil {
-		if err.err != nil {
-			log.Println(err.err)
+	if e := fn(w, r); e != nil {
+		if e.err != nil {
+			log.Println(e)
+			log.Println(e.err)
 		}
-		http.Error(w, err.message, err.code)
+		http.Error(w, e.message, e.code)
 	}
 }
 
